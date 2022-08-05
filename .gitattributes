@@ -1,2 +1,149 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <string>
+using namespace std;
+
+//独自クラスの定義
+class Data {
+public:
+    double time;          //時刻
+    double Pattern1;   //データ１
+    double Pattern2;   //データ２
+    double Pattern3;   //データ３
+    void setTime(double newTime);
+    double getTime();
+    void setPattern1(double newHeatTrans1);
+    double getPattern1();
+    void setPattern2(double newHeatTrans2);
+    double getPattern2();
+    void setPattern3(double newHeatTrans3);
+    double getPattern3();
+    void show();        //データの一覧表示
+};
+
+//メンバ関数の定義
+void Data::setTime(double newTime) {
+    time = newTime;
+}
+
+double Data::getTime() {
+    return time;
+}
+
+void Data::setPattern1(double newPattern1) {
+    Pattern1 = newPattern1;
+}
+
+double Data::getPattern1() {
+    return Pattern1;
+}
+
+void Data::setPattern2(double newPattern2) {
+    Pattern2 = newPattern2;
+}
+
+double Data::getPattern2() {
+    return Pattern2;
+}
+
+void Data::setPattern3(double newPattern3) {
+    Pattern3 = newPattern3;
+}
+
+double Data::getPattern3() {
+    return Pattern3;
+}
+
+void Data::show() {
+    cout << "時刻：" << time << "　データ１：" << Pattern1 << "　データ２：" << Pattern2 << "　データ３：" << Pattern3 << endl;
+}
+
+//分散を求める関数の定義
+double disp(vector<double>::iterator begin, vector<double>::iterator end, double di, double DI, double avg, int num) {
+    for (auto r = begin; r != end; ++r) {
+        di = di + *r;
+    }
+    DI = (di / num) - avg * avg;
+    return DI;
+}
+
+int main()
+{
+    int n;
+    double t, p1, p2, p3;
+    int i = 0;
+    cout << "データ入力回数を指定してください．" << endl;        //実験の試行回数やデータ数を指定する
+    cin >> n;
+    cout << endl;
+
+    ofstream outfile("Data.txt", ios_base::out);    //実験で得られたデータを入力し，テキストファイルとして出力する
+    do {
+        cout << "時刻，データ１，データ２，データ３，の順で実験値を入力してください．" << endl;
+        cin >> t;
+        cin >> p1;
+        cin >> p2;
+        cin >> p3;
+        ++i;
+        outfile << t << " " << p1 << " " << p2 << " " << p3 << endl;
+
+    } while (i < n);
+    outfile.close();
+    cout << endl;
+
+    ifstream infile("Data.txt");
+
+    /*
+    string line;
+    while (getline(infile, line)) {
+        cout << line << endl;
+    }
+    */
+
+    double a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, A = 0, B = 0, C = 0, D = 0, E = 0, F = 0;
+    int x = 0;
+    double time, Pattern1, Pattern2, Pattern3;
+    vector<Data> vec;
+    
+    //テキストファイルとして出力した実験データを独自クラスで読み込む
+    while (infile >> time >> Pattern1 >> Pattern2 >> Pattern3) {
+        vec.emplace_back();
+        vec[x].setTime(time);
+        vec[x].setPattern1(Pattern1);
+        vec[x].setPattern2(Pattern2);
+        vec[x].setPattern3(Pattern3);
+
+        x = x + 1;
+    }
+    infile.close();
+
+    //データの一覧表示を行う
+    cout << "入力された実験データの一覧，及び各データの平均値，分散は以下の通り．" << endl << endl;
+    for (int m = 0; m < vec.size(); ++m) {
+        vec[m].show();
+    }
+    cout << endl;
+
+    //3種類のデータそれぞれの平均値を求め，表示する
+    for (vector<Data>::iterator itr = vec.begin(); itr !=  vec.end(); ++itr) {
+        a = a + itr->getPattern1();
+        b = b + itr->getPattern2();
+        c = c + itr->getPattern3();
+    }
+    A = a / n;
+    B = b / n;
+    C = c / n;
+
+    cout << "平均値　　データ１：" << A << "　データ２：" << B << "　データ３：" << C << endl << endl;
+
+    //実験値の二乗を新しく用意したベクトルに保存する
+    vector<double> square1(n), square2(n), square3(n);
+    for (int q = 0; q < vec.size(); ++q) {
+        square1[q] = vec[q].getPattern1() * vec[q].getPattern1();
+        square2[q] = vec[q].getPattern2() * vec[q].getPattern2();
+        square3[q] = vec[q].getPattern3() * vec[q].getPattern3();
+    }
+
+    //3種類のデータそれぞれの分散を求め，表示する
+    cout << "分散　　　データ１：" << disp(square1.begin(), square1.end(), d, D, A, n) << "　データ２：" << disp(square2.begin(), square2.end(), e, E, B, n) << "　データ３：" << disp(square3.begin(), square3.end(), f, F, C, n) << endl << endl;
+}
